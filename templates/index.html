@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Bank - Welcome</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+		<div class="logo"> digital bank
+    </div>           <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+		<li><a href="{{ url_for('services') }}">Services</a></li>
+		<li><a href="{{url_for('contact')}}">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Welcome to Digital Bank</h1>
+                <p>Experience the future of banking with our secure and innovative digital platform.</p>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">Register</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2023 Digital Bank. All rights reserved.</p>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('support') }}">Support</a></li>
+                    <li><a href="{{ url_for('terms_of_use') }}">Terms of Use</a></li>
+                    <li><a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+</body>
+</html> 
+

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Banking App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Banking App</div>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('settings') }}">Settings</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main class="form-container">
+        <!-- Display flashed messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="{% if category == 'success' %}success-message{% elif category == 'error' %}error-message{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h2>Settings</h2>
+        
+        <form method="POST" action="{{ url_for('settings') }}">
+    <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" value="{{ user.username }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}" required>
+    </div>
+
+    {% if update_password %}
+    <div class="form-group">
+        <label for="password">New Password:</label>
+        <input type="password" id="password" name="password">
+    </div>
+    {% endif %}
+
+    <button type="submit" class="btn btn-primary">Update Settings</button>
+</form>
+
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Banking App. All rights reserved.</p>
+    </footer>
+</body>
+</html>
+

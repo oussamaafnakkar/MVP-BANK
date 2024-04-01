@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Digital Bank</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="background">
+    <header>
+        <nav>
+            <div class="logo">Digital Bank</div>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="{{url_for('services')}}">Services</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="login-section">
+            <div class="login-content">
+                <h1>Login</h1>
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="error-message">
+                            {% for message in messages %}
+                                <p>{{ message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                <form method="post" action="{{ url_for('login') }}" class="form">
+                    <label>Email:</label>
+                    <input type="email" name="email" required>
+                    <br>
+                    <label>Password:</label>
+                    <input type="password" name="password" required>
+                    <br>
+                    <input type="submit" value="Login" class="btn btn-primary">
+                </form>
+                <p><a href="{{ url_for('forgot_password') }}">Forgot Password?</a></p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2023 Digital Bank. All rights reserved.</p>
+            <nav>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Use</a></li>
+                    <li><a href="#">Support</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+</body>
+</html>
+

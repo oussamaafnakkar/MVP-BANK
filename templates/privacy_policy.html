@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Bank - Privacy Policy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Digital Bank</div>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('services') }}">Services</a></li>
+                <li><a href="{{ url_for('support') }}">Support</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-content">
+            <h1>Privacy Policy</h1>
+	                <p>Our privacy policy outlines how we collect, use, and protect your personal information when you use our digital banking services.</p>
+            <p>We are committed to safeguarding your privacy and ensuring the security of your personal data.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2023 Digital Bank. All rights reserved.</p>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></li>
+                    <li><a href="{{ url_for('terms_of_use') }}">Terms of Use</a></li>
+                    <li><a href="{{ url_for('support') }}">Support</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+</body>
+</html>
+
