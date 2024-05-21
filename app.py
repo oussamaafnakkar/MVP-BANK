@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_bcrypt import Bcrypt
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_, and_, not_
 import os
@@ -9,23 +10,23 @@ from sqlalchemy.sql import func
 import random
 import secrets
 import string
-import smtplib
 from flask_mail import Mail, Message
 
 app = Flask(__name__)
-app.secret_key = 'supersecretpasskey123lol#'
+app.secret_key = os.environ.get('SECRET_KEY')
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAIL_SERVER'] = 'smtp.securebytechronicles.tech'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = ''  # Update with your Gmail email address
-app.config['MAIL_PASSWORD'] = ''     # Update with your Gmail password
+app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USERNAME')  # Update with your email username
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASSWORD')  # Update with your email password
 
 mail = Mail(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+bcrypt = Bcrypt(app)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -89,18 +90,19 @@ def settings():
             new_email = request.form['email']
             new_password = request.form['password']
 
-            existing_user_with_username = User.query.filter_by(username=new_username).first()
-            existing_user_with_email = User.query.filter_by(email=new_email).first()
+            existing_user_with_username = User.query.filter(User.username == new_username, User.id != user.id).first()
+            existing_user_with_email = User.query.filter(User.email == new_email, User.id != user.id).first()
 
-            if existing_user_with_username and existing_user_with_username.id != user.id:
+            if existing_user_with_username:
                 flash('Username already in use. Please choose a different one.', 'error')
-            elif existing_user_with_email and existing_user_with_email.id != user.id:
+            elif existing_user_with_email:
                 flash('Email already in use. Please choose a different one.', 'error')
             else:
                 user.username = new_username
                 user.email = new_email
                 if new_password:  # Check if password is provided
-                    user.password = new_password  # Update the password
+                    hashed_new_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+                    user.password = hashed_new_password
                 db.session.commit()
                 flash('Settings updated successfully!', 'success')
                 return redirect(url_for('settings'))
@@ -110,42 +112,33 @@ def settings():
         flash('Please login to access the settings', 'error')
         return redirect(url_for('login'))
 
-
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        
-        if password != confirm_password:
-            flash('Passwords do not match', 'error')
-            return redirect(url_for('register'))
-        
+
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
         try:
-            max_user_id = db.session.query(func.max(User.id)).scalar()
-            next_user_id = 1 if max_user_id is None else max_user_id + 1
-            
-            user = User(username=username, email=email, password=password, id=9453000000 + next_user_id)
+            user = User(username=username, email=email, password=hashed_password)
             db.session.add(user)
             db.session.commit()
             return redirect(url_for('login'))
         except IntegrityError:
             db.session.rollback()
-            flash('Username or email already exists', 'error')  
+            flash('Username or email already exists', 'error')
             return redirect(url_for('register'))
     return render_template('register.html')
 
-# Route for login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        user = User.query.filter_by(email=email, password=password).first()
-        if user:
+        user = User.query.filter_by(email=email).first()
+        if user and bcrypt.check_password_hash(user.password, password):
             session['user_id'] = user.id
             return redirect(url_for('dashboard'))
         else:
@@ -153,19 +146,16 @@ def login():
             return redirect(url_for('login'))
     return render_template('login.html')
 
-# Route for forgot password page
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
         email = request.form['email']
-        # Generate a new password (you can use any method to generate a strong password)
         new_password = generate_strong_password()
-        # Update the user's password in the database
         user = User.query.filter_by(email=email).first()
         if user:
-            user.password = new_password
+            hashed_new_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+            user.password = hashed_new_password
             db.session.commit()
-            # Send the new password to the user's email
             send_password_reset_email(email, new_password)
             flash('A new password has been sent to your email address', 'success')
             return redirect(url_for('login'))
@@ -175,13 +165,11 @@ def forgot_password():
     return render_template('forgot_password.html')
 
 def generate_strong_password():
-   
     password_characters = string.ascii_letters + string.digits + string.punctuation
-    new_password = ''.join(secrets.choice(password_characters) for i in range(12))
-    return new_password
+    return ''.join(secrets.choice(password_characters) for i in range(12))
 
 def send_password_reset_email(email, new_password):
-    msg = Message('Password Reset', sender='', recipients=[email])# Update with your Gmail email address
+    msg = Message('Password Reset', sender='oussama.afnakkar@securebytechronicles.tech', recipients=[email])
     msg.body = f'Your new password is: {new_password}'
     mail.send(msg)
 
@@ -199,10 +187,14 @@ def deposit():
         transaction = Transaction(user_id=user.id, amount=amount, description=f'Deposit by {user.username}')
         db.session.add(transaction)
         db.session.commit()
+
+        flash('Deposit successful', 'success')  
         return redirect(url_for('dashboard'))
     else:
         return redirect(url_for('login'))
 
+
+#dashboard 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'user_id' in session:
@@ -240,7 +232,6 @@ def dashboard():
         return redirect(url_for('login'))
 
 
-
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
@@ -263,4 +254,3 @@ def submit_contact_form():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
